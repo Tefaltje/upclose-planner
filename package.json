@@ -1,5 +1,5 @@
 {
-  "name": "upclose-blokkenschema",
+  "name": "upclose-planner",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -9,12 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "tailwindcss": "latest",
-    "@tailwindcss/vite": "latest"
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.14",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "tailwindcss": "^3.4.17",
+    "postcss": "^8.4.49",
+    "autoprefixer": "^10.4.20"
+  }
 }

@@ -104,7 +104,7 @@ const DATA = {
   },
 };
 
-const PX_PER_MINUTE = 1.05;
+const PX_PER_MINUTE = 1.2;
 
 function timeToMinutes(time) {
   const [hours, minutes] = time.split(":").map(Number);
@@ -195,47 +195,6 @@ function getChoiceMomentGroups(events) {
   return groups.sort((a, b) => Math.min(...a.map((event) => event.startMin)) - Math.min(...b.map((event) => event.startMin)));
 }
 
-function unionMinutes(events) {
-  const sorted = [...events].sort((a, b) => a.startMin - b.startMin);
-  let total = 0;
-  let start = null;
-  let end = null;
-
-  sorted.forEach((event) => {
-    if (start === null) {
-      start = event.startMin;
-      end = event.endMin;
-    } else if (event.startMin <= end) {
-      end = Math.max(end, event.endMin);
-    } else {
-      total += end - start;
-      start = event.startMin;
-      end = event.endMin;
-    }
-  });
-
-  if (start !== null) total += end - start;
-  return total;
-}
-
-function formatHours(minutes) {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  if (!hours) return `${mins} min`;
-  if (!mins) return `${hours} uur`;
-  return `${hours}u ${mins}m`;
-}
-
-function buildClipboardText(events, day) {
-  if (!events.length) return "";
-  return [
-    `Mijn blokkenschema — ${day.label} ${day.date}`,
-    ...events
-      .sort((a, b) => a.startMin - b.startMin)
-      .map((event) => `${event.start}–${event.end} · ${event.title} · ${event.stage}${event.note ? ` · ${event.note}` : ""}`),
-  ].join("\n");
-}
-
 function EventCard({ event, top, height, selected, overlapSeverity, muted, onToggle }) {
   return (
     <button
@@ -243,7 +202,7 @@ function EventCard({ event, top, height, selected, overlapSeverity, muted, onTog
       onClick={() => onToggle(event.id)}
       title={`${event.start}–${event.end} · ${event.title}`}
       className={[
-        "absolute left-0.5 right-0.5 overflow-hidden rounded-lg border p-1 text-left transition-all duration-150 md:left-1 md:right-1 md:rounded-2xl md:p-2",
+        "absolute left-0.5 right-0.5 overflow-hidden rounded-lg border p-1.5 text-left transition-all duration-150 md:left-1 md:right-1 md:rounded-2xl md:p-2",
         "hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-neutral-900",
         selected
           ? overlapSeverity === "red"
@@ -256,11 +215,11 @@ function EventCard({ event, top, height, selected, overlapSeverity, muted, onTog
       ].join(" ")}
       style={{ top, height }}
     >
-      <div className="text-[7px] font-black uppercase leading-none tracking-tight opacity-80 md:text-[10px]">
+      <div className="text-[8px] font-black uppercase leading-none tracking-tight opacity-80 sm:text-[9px] md:text-[10px]">
         {event.start} – {event.end}
       </div>
-      <div className="mt-0.5 text-[8px] font-black uppercase leading-none tracking-tighter md:mt-1 md:text-sm md:leading-tight md:tracking-tight">{event.title}</div>
-      {event.note && <div className="mt-0.5 text-[7px] font-bold uppercase leading-none opacity-75 md:mt-1 md:text-[10px] md:leading-tight">{event.note}</div>}
+      <div className="mt-0.5 break-words text-[9px] font-black uppercase leading-[0.95] tracking-tighter sm:text-[10px] md:mt-1 md:text-sm md:leading-tight md:tracking-tight">{event.title}</div>
+      {event.note && <div className="mt-0.5 break-words text-[7px] font-bold uppercase leading-[0.95] opacity-75 sm:text-[8px] md:mt-1 md:text-[10px] md:leading-tight">{event.note}</div>}
     </button>
   );
 }
@@ -271,7 +230,6 @@ export default function UpcloseBlockPlanner() {
   const [query, setQuery] = useState("");
   const [stageFilter, setStageFilter] = useState("all");
   const [onlySelected, setOnlySelected] = useState(false);
-  const [copyState, setCopyState] = useState("Kopieer planning");
 
   useEffect(() => {
     try {
@@ -315,6 +273,7 @@ export default function UpcloseBlockPlanner() {
 
   const filteredIds = useMemo(() => new Set(filteredEvents.map((event) => event.id)), [filteredEvents]);
 
+
   const timeMarkers = useMemo(() => {
     const markers = [];
     for (let t = dayStart; t <= dayEnd; t += 30) markers.push(t);
@@ -330,21 +289,6 @@ export default function UpcloseBlockPlanner() {
     setSelectedIds((current) => current.filter((id) => !dayIds.has(id)));
   };
 
-  const copyPlanning = async () => {
-    const text = buildClipboardText(selectedDayEvents, day);
-    if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopyState("Gekopieerd");
-      setTimeout(() => setCopyState("Kopieer planning"), 1400);
-    } catch {
-      setCopyState("Kopiëren lukt niet");
-      setTimeout(() => setCopyState("Kopieer planning"), 1400);
-    }
-  };
-
-  const selectedMinutes = unionMinutes(selectedDayEvents);
-  const fullDayMinutes = dayEnd - dayStart;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-200 via-cyan-100 to-sky-300 p-3 pb-24 text-neutral-950 md:p-8 md:pb-8">
@@ -376,8 +320,8 @@ export default function UpcloseBlockPlanner() {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-3 md:grid-cols-[1.4fr_0.9fr_0.9fr_auto]">
-            <label className="block">
+          <div className="mt-6 grid grid-cols-[minmax(0,1fr)_112px] gap-3 md:grid-cols-[1.4fr_0.9fr_1.15fr_0.55fr]">
+            <label className="col-span-2 block md:col-span-1">
               <span className="mb-1 block text-xs font-black uppercase tracking-wider text-neutral-600">Zoeken</span>
               <input
                 value={query}
@@ -386,7 +330,7 @@ export default function UpcloseBlockPlanner() {
                 className="w-full rounded-2xl border border-white/80 bg-white/80 px-4 py-3 font-semibold outline-none ring-neutral-950/0 transition placeholder:text-neutral-400 focus:ring-2"
               />
             </label>
-            <label className="block">
+            <label className="col-span-2 block md:col-span-1">
               <span className="mb-1 block text-xs font-black uppercase tracking-wider text-neutral-600">Area</span>
               <select
                 value={stageFilter}
@@ -406,27 +350,19 @@ export default function UpcloseBlockPlanner() {
                 type="button"
                 onClick={() => setOnlySelected((current) => !current)}
                 className={[
-                  "w-full rounded-2xl border px-4 py-3 text-sm font-black uppercase transition",
+                  "w-full rounded-2xl border px-4 py-3 text-sm font-black uppercase transition sm:text-base md:px-5 md:py-3.5",
                   onlySelected ? "border-neutral-950 bg-neutral-950 text-white" : "border-white/80 bg-white/80 hover:bg-white",
                 ].join(" ")}
               >
                 {onlySelected ? "Toon alles" : "Alleen mijn schema"}
               </button>
             </label>
-            <div className="grid grid-cols-2 gap-2 md:flex md:items-end">
-              <button
-                type="button"
-                onClick={copyPlanning}
-                disabled={!selectedDayEvents.length}
-                className="w-full rounded-2xl bg-white/80 px-4 py-3 text-sm font-black uppercase shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {copyState}
-              </button>
+            <div className="flex items-end">
               <button
                 type="button"
                 onClick={clearDay}
                 disabled={!selectedDayEvents.length}
-                className="w-full rounded-2xl bg-white/50 px-4 py-3 text-sm font-black uppercase transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                className="w-full rounded-2xl bg-rose-600 px-2 py-3 text-xs font-black uppercase text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300 disabled:opacity-60 sm:text-sm"
               >
                 Wis dag
               </button>
@@ -434,22 +370,14 @@ export default function UpcloseBlockPlanner() {
           </div>
         </header>
 
-        <section className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <section className="mb-5 grid grid-cols-2 gap-3">
           <div className="rounded-3xl bg-white/70 p-4 shadow-sm backdrop-blur">
             <div className="text-xs font-black uppercase tracking-wider text-neutral-500">Geselecteerd</div>
             <div className="mt-1 text-2xl font-black md:text-3xl">{selectedDayEvents.length}</div>
           </div>
           <div className="rounded-3xl bg-white/70 p-4 shadow-sm backdrop-blur">
-            <div className="text-xs font-black uppercase tracking-wider text-neutral-500">Unieke kijktijd</div>
-            <div className="mt-1 text-2xl font-black md:text-3xl">{formatHours(selectedMinutes)}</div>
-          </div>
-          <div className="rounded-3xl bg-white/70 p-4 shadow-sm backdrop-blur">
             <div className="text-xs font-black uppercase tracking-wider text-neutral-500">Keuzemomenten</div>
             <div className="mt-1 text-2xl font-black md:text-3xl">{choiceMomentGroups.length}</div>
-          </div>
-          <div className="rounded-3xl bg-white/70 p-4 shadow-sm backdrop-blur">
-            <div className="text-xs font-black uppercase tracking-wider text-neutral-500">Dag gevuld</div>
-            <div className="mt-1 text-2xl font-black md:text-3xl">{Math.round((selectedMinutes / fullDayMinutes) * 100)}%</div>
           </div>
         </section>
 
@@ -458,28 +386,28 @@ export default function UpcloseBlockPlanner() {
             <div className="flex items-center justify-between gap-3 border-b border-white/60 p-4">
               <div>
                 <h2 className="text-xl font-black uppercase tracking-tight">{day.label} {day.date}</h2>
-                <p className="text-xs font-bold uppercase text-neutral-600">Klik blokken aan om toe te voegen of te verwijderen. Op mobiel blijft de timetable naast elkaar staan.</p>
+                <p className="text-xs font-bold uppercase text-neutral-600">Klik blokken aan om toe te voegen of te verwijderen.</p>
               </div>
               <div className="rounded-full bg-white/80 px-3 py-1 text-xs font-black uppercase">{day.start}–{day.end}</div>
             </div>
 
-            <div className="overflow-x-hidden p-1.5 md:p-3">
-              <div className="min-w-0">
-                <div className="grid grid-cols-[34px_repeat(6,minmax(0,1fr))] gap-0.5 md:grid-cols-[56px_repeat(6,minmax(80px,1fr))] md:gap-1 lg:grid-cols-[72px_repeat(6,minmax(140px,1fr))]">
+            <div className="overflow-x-auto p-1.5 md:p-3">
+              <div className="min-w-[620px] sm:min-w-0">
+                <div className="grid grid-cols-[46px_repeat(6,minmax(88px,1fr))] gap-0.5 md:grid-cols-[56px_repeat(6,minmax(100px,1fr))] md:gap-1 lg:grid-cols-[72px_repeat(6,minmax(140px,1fr))]">
                   <div />
                   {day.stages.map((stage) => (
-                    <div key={stage} className="rounded-t-lg bg-white/80 py-2 text-center text-[8px] font-black uppercase tracking-tight md:rounded-t-2xl md:py-3 md:text-sm md:tracking-[0.25em]">
+                    <div key={stage} className="rounded-t-lg bg-white/80 px-0.5 py-2 text-center text-[9px] font-black uppercase leading-none tracking-tight md:rounded-t-2xl md:py-3 md:text-sm md:tracking-[0.25em]">
                       {stage}
                     </div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-[34px_repeat(6,minmax(0,1fr))] gap-0.5 md:grid-cols-[56px_repeat(6,minmax(80px,1fr))] md:gap-1 lg:grid-cols-[72px_repeat(6,minmax(140px,1fr))]">
+                <div className="grid grid-cols-[46px_repeat(6,minmax(88px,1fr))] gap-0.5 md:grid-cols-[56px_repeat(6,minmax(100px,1fr))] md:gap-1 lg:grid-cols-[72px_repeat(6,minmax(140px,1fr))]">
                   <div className="relative" style={{ height: timelineHeight }}>
                     {timeMarkers.map((marker) => (
                       <div
                         key={marker}
-                        className="absolute left-0 right-0 -translate-y-1/2 pr-0.5 text-right text-[8px] font-black tabular-nums text-neutral-700 md:pr-2 md:text-sm"
+                        className="absolute left-0 right-0 -translate-y-1/2 pr-1 text-right text-[9px] font-black tabular-nums text-neutral-700 md:pr-2 md:text-sm"
                         style={{ top: (marker - dayStart) * PX_PER_MINUTE }}
                       >
                         {minutesToTime(marker)}
@@ -509,7 +437,7 @@ export default function UpcloseBlockPlanner() {
                               overlapSeverity={selected ? overlapSeverityMap.get(event.id) : null}
                               muted={muted}
                               top={(event.startMin - dayStart) * PX_PER_MINUTE + 2}
-                              height={Math.max((event.endMin - event.startMin) * PX_PER_MINUTE - 4, 42)}
+                              height={Math.max((event.endMin - event.startMin) * PX_PER_MINUTE - 4, 58)}
                               onToggle={toggleEvent}
                             />
                           );
@@ -605,34 +533,28 @@ export default function UpcloseBlockPlanner() {
                 </div>
               )}
             </section>
-
-            <section className="rounded-[2rem] border border-white/60 bg-white/70 p-4 shadow-xl backdrop-blur">
-              <h2 className="text-xl font-black uppercase tracking-tight">Tips</h2>
-              <div className="mt-3 space-y-2 text-sm font-semibold text-neutral-700">
-                <p>• Zwarte blokken zitten in je persoonlijke schema.</p>
-                <p>• Gele blokken overlappen maximaal 30 minuten.</p>
-                <p>• Roze blokken overlappen meer dan 30 minuten en komen in de vergelijker.</p>
-                <p>• Gebruik zoeken om snel een artiest of area te vinden.</p>
-                <p>• Je selectie wordt lokaal opgeslagen in je browser.</p>
-              </div>
-            </section>
           </aside>
         </main>
 
         <div className="fixed inset-x-3 bottom-3 z-50 rounded-3xl border border-white/70 bg-white/85 p-3 shadow-2xl backdrop-blur lg:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-[10px] font-black uppercase tracking-wider text-neutral-500">Mijn schema</div>
-              <div className="text-base font-black uppercase leading-tight">
-                {selectedDayEvents.length} acts · {choiceMomentGroups.length} keuzemomenten
-              </div>
-            </div>
+          <div className="mb-2 text-center text-[10px] font-black uppercase tracking-wider text-neutral-500">
+            {selectedDayEvents.length} acts · {choiceMomentGroups.length} keuzemomenten
+          </div>
+          <div className="grid grid-cols-[minmax(0,1fr)_112px] gap-2">
             <button
               type="button"
               onClick={() => setOnlySelected((current) => !current)}
-              className="shrink-0 rounded-2xl bg-neutral-950 px-4 py-3 text-xs font-black uppercase text-white"
+              className="rounded-2xl bg-neutral-950 px-4 py-3 text-xs font-black uppercase text-white"
             >
-              {onlySelected ? "Alles" : "Mijn"}
+              {onlySelected ? "Toon alles" : "Alleen mijn schema"}
+            </button>
+            <button
+              type="button"
+              onClick={clearDay}
+              disabled={!selectedDayEvents.length}
+              className="rounded-2xl bg-rose-600 px-2 py-3 text-xs font-black uppercase text-white shadow-sm disabled:cursor-not-allowed disabled:bg-rose-300 disabled:opacity-60"
+            >
+              Wis dag
             </button>
           </div>
         </div>
