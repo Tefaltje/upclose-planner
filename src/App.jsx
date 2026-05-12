@@ -105,6 +105,7 @@ const DATA = {
 };
 
 const PX_PER_MINUTE = 1.22;
+const TIMELINE_EDGE_PADDING = 12;
 
 function timeToMinutes(time) {
   const [hours, minutes] = time.split(":").map(Number);
@@ -195,7 +196,7 @@ function getChoiceMomentGroups(events) {
   return groups.sort((a, b) => Math.min(...a.map((event) => event.startMin)) - Math.min(...b.map((event) => event.startMin)));
 }
 
-function EventCard({ event, top, height, selected, overlapSeverity, muted, onToggle }) {
+function EventCard({ event, top, height, selected, overlapSeverity, muted, onToggle, expanded = false }) {
   return (
     <button
       type="button"
@@ -215,11 +216,11 @@ function EventCard({ event, top, height, selected, overlapSeverity, muted, onTog
       ].join(" ")}
       style={{ top, height }}
     >
-      <div className="max-w-full overflow-hidden text-[6.5px] font-black uppercase leading-none tracking-tight opacity-80 sm:text-[8px] md:text-[10px]">
+      <div className={expanded ? "max-w-full overflow-hidden text-[10px] font-black uppercase leading-none tracking-tight opacity-80 sm:text-xs md:text-sm" : "max-w-full overflow-hidden text-[6.5px] font-black uppercase leading-none tracking-tight opacity-80 sm:text-[8px] md:text-[10px]"}>
         {event.start} – {event.end}
       </div>
-      <div className="mt-0.5 max-w-full break-words text-[7px] font-black uppercase leading-[0.9] tracking-tighter hyphens-auto [overflow-wrap:anywhere] sm:text-[8.5px] sm:leading-[0.95] md:mt-1 md:text-sm md:leading-tight md:tracking-tight">{event.title}</div>
-      {event.note && <div className="mt-0.5 hidden max-w-full break-words text-[7px] font-bold uppercase leading-[0.95] opacity-75 [overflow-wrap:anywhere] sm:block sm:text-[8px] md:mt-1 md:text-[10px] md:leading-tight">{event.note}</div>}
+      <div className={expanded ? "mt-1 max-w-full break-words text-lg font-black uppercase leading-tight tracking-tight hyphens-auto [overflow-wrap:anywhere] sm:text-xl md:text-2xl" : "mt-0.5 max-w-full break-words text-[7px] font-black uppercase leading-[0.9] tracking-tighter hyphens-auto [overflow-wrap:anywhere] sm:text-[8.5px] sm:leading-[0.95] md:mt-1 md:text-sm md:leading-tight md:tracking-tight"}>{event.title}</div>
+      {event.note && <div className={expanded ? "mt-1 max-w-full break-words text-xs font-bold uppercase leading-tight opacity-75 [overflow-wrap:anywhere] sm:text-sm" : "mt-0.5 hidden max-w-full break-words text-[7px] font-bold uppercase leading-[0.95] opacity-75 [overflow-wrap:anywhere] sm:block sm:text-[8px] md:mt-1 md:text-[10px] md:leading-tight"}>{event.note}</div>}
     </button>
   );
 }
@@ -230,6 +231,12 @@ export default function UpcloseBlockPlanner() {
   const [query, setQuery] = useState("");
   const [stageFilter, setStageFilter] = useState("all");
   const [onlySelected, setOnlySelected] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     try {
@@ -252,6 +259,11 @@ export default function UpcloseBlockPlanner() {
   const dayStart = timeToMinutes(day.start);
   const dayEnd = timeToMinutes(day.end);
   const timelineHeight = (dayEnd - dayStart) * PX_PER_MINUTE;
+  const timelineGridHeight = timelineHeight + TIMELINE_EDGE_PADDING * 2;
+  const getTimelineY = (minutes) => TIMELINE_EDGE_PADDING + (minutes - dayStart) * PX_PER_MINUTE;
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const showNowMarker = nowMinutes >= dayStart && nowMinutes <= dayEnd;
+  const nowMarkerTop = getTimelineY(nowMinutes);
 
   const selectedDayEvents = useMemo(
     () => day.events.filter((event) => selectedIds.includes(event.id)).sort((a, b) => a.startMin - b.startMin),
@@ -273,11 +285,27 @@ export default function UpcloseBlockPlanner() {
 
   const filteredIds = useMemo(() => new Set(filteredEvents.map((event) => event.id)), [filteredEvents]);
 
+
   const timeMarkers = useMemo(() => {
     const markers = [];
     for (let t = dayStart; t <= dayEnd; t += 30) markers.push(t);
     return markers;
   }, [dayStart, dayEnd]);
+
+  const visibleStages = useMemo(
+    () => (stageFilter === "all" ? day.stages : day.stages.filter((stage) => stage === stageFilter)),
+    [day.stages, stageFilter]
+  );
+  const isSingleAreaView = visibleStages.length === 1;
+  const timelineGridClass = isSingleAreaView
+    ? "grid w-full min-w-0 max-w-full grid-cols-[56px_minmax(0,1fr)] gap-1 overflow-hidden sm:grid-cols-[64px_minmax(0,1fr)] md:grid-cols-[72px_minmax(0,1fr)] lg:grid-cols-[84px_minmax(0,1fr)]"
+    : "grid w-full min-w-0 max-w-full grid-cols-[26px_repeat(6,minmax(0,1fr))] gap-px overflow-hidden sm:grid-cols-[34px_repeat(6,minmax(0,1fr))] sm:gap-0.5 md:grid-cols-[56px_repeat(6,minmax(0,1fr))] md:gap-1 lg:grid-cols-[72px_repeat(6,minmax(0,1fr))]";
+  const nowLineClass = isSingleAreaView
+    ? "absolute left-[56px] right-0 top-1/2 z-0 h-0.5 -translate-y-1/2 bg-neutral-950/45 shadow-[0_0_0_1px_rgba(255,255,255,0.35)] sm:left-[64px] md:left-[72px] lg:left-[84px]"
+    : "absolute left-[26px] right-0 top-1/2 z-0 h-0.5 -translate-y-1/2 bg-neutral-950/45 shadow-[0_0_0_1px_rgba(255,255,255,0.35)] sm:left-[34px] md:left-[56px] lg:left-[72px]";
+  const nowBubbleClass = isSingleAreaView
+    ? "absolute left-0 top-1/2 z-10 flex w-[56px] -translate-y-1/2 flex-col items-center rounded bg-neutral-950 px-1 py-1 text-center text-[8px] font-black uppercase leading-none text-white shadow sm:w-[64px] sm:text-[9px] md:w-[72px] md:text-[10px] lg:w-[84px]"
+    : "absolute left-0 top-1/2 z-10 flex w-[26px] -translate-y-1/2 flex-col items-center rounded bg-neutral-950 px-0.5 py-1 text-center text-[6px] font-black uppercase leading-none text-white shadow sm:w-[34px] sm:text-[7px] md:w-[56px] md:px-1 md:text-[9px] lg:w-[72px] lg:px-2 lg:text-[10px]";
 
   const toggleEvent = (id) => {
     setSelectedIds((current) => (current.includes(id) ? current.filter((eventId) => eventId !== id) : [...current, id]));
@@ -287,6 +315,7 @@ export default function UpcloseBlockPlanner() {
     const dayIds = new Set(day.events.map((event) => event.id));
     setSelectedIds((current) => current.filter((id) => !dayIds.has(id)));
   };
+
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-cyan-200 via-cyan-100 to-sky-300 p-3 pb-24 text-neutral-950 md:p-8 md:pb-8">
@@ -391,51 +420,54 @@ export default function UpcloseBlockPlanner() {
 
             <div className="w-full max-w-full overflow-hidden p-1 md:p-3" style={{ touchAction: "pan-y" }}>
               <div className="w-full min-w-0 max-w-full overflow-hidden">
-                <div className="grid w-full min-w-0 max-w-full grid-cols-[26px_repeat(6,minmax(0,1fr))] gap-px overflow-hidden sm:grid-cols-[34px_repeat(6,minmax(0,1fr))] sm:gap-0.5 md:grid-cols-[56px_repeat(6,minmax(0,1fr))] md:gap-1 lg:grid-cols-[72px_repeat(6,minmax(0,1fr))]">
+                <div className={timelineGridClass}>
                   <div />
-                  {day.stages.map((stage) => (
+                  {visibleStages.map((stage) => (
                     <div key={stage} className="min-w-0 overflow-hidden rounded-t-md bg-white/80 px-0.5 py-1.5 text-center text-[7px] font-black uppercase leading-none tracking-tighter sm:rounded-t-lg sm:text-[8px] md:rounded-t-lg md:py-3 md:text-sm md:tracking-[0.25em]">
-                      <span className="md:hidden">{stage.replace("AREA.", "")}</span>
-                      <span className="hidden md:inline">{stage}</span>
+                      {isSingleAreaView ? (
+                        <span>{stage}</span>
+                      ) : (
+                        <>
+                          <span className="md:hidden">{stage.replace("AREA.", "")}</span>
+                          <span className="hidden md:inline">{stage}</span>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
 
-                <div className="grid w-full min-w-0 max-w-full grid-cols-[26px_repeat(6,minmax(0,1fr))] gap-px overflow-hidden sm:grid-cols-[34px_repeat(6,minmax(0,1fr))] sm:gap-0.5 md:grid-cols-[56px_repeat(6,minmax(0,1fr))] md:gap-1 lg:grid-cols-[72px_repeat(6,minmax(0,1fr))]">
-                  <div className="relative min-w-0 overflow-hidden" style={{ height: timelineHeight }}>
-                    {timeMarkers.map((marker) => {
-                      const isFirstMarker = marker === dayStart;
-                      const isLastMarker = marker === dayEnd;
-                      const markerTop = isFirstMarker
-                        ? 2
-                        : isLastMarker
-                          ? timelineHeight - 2
-                          : (marker - dayStart) * PX_PER_MINUTE;
-                      const markerTransform = isFirstMarker
-                        ? "translateY(0)"
-                        : isLastMarker
-                          ? "translateY(-100%)"
-                          : "translateY(-50%)";
-
-                      return (
-                        <div
-                          key={marker}
-                          className="absolute left-0 right-0 pr-0.5 text-right text-[7px] font-black leading-none tabular-nums text-neutral-700 sm:pr-1 sm:text-[8px] md:pr-2 md:text-sm"
-                          style={{ top: markerTop, transform: markerTransform }}
-                        >
-                          {minutesToTime(marker)}
-                        </div>
-                      );
-                    })}
+                <div className={`relative ${timelineGridClass}`}>
+                  {showNowMarker && (
+                    <div
+                      className="pointer-events-none absolute left-0 right-0 z-30 h-0"
+                      style={{ top: nowMarkerTop }}
+                    >
+                      <div className={nowLineClass} />
+                      <div className={nowBubbleClass}>
+                        <span>Now</span>
+                        <span className="mt-0.5 tabular-nums">{minutesToTime(nowMinutes)}</span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="relative min-w-0 overflow-hidden" style={{ height: timelineGridHeight }}>
+                    {timeMarkers.map((marker) => (
+                      <div
+                        key={marker}
+                        className="absolute left-0 right-0 -translate-y-1/2 pr-0.5 text-right text-[7px] font-black leading-none tabular-nums text-neutral-700 sm:pr-1 sm:text-[8px] md:pr-2 md:text-sm"
+                        style={{ top: getTimelineY(marker) }}
+                      >
+                        {marker % 60 === 0 ? minutesToTime(marker) : "—"}
+                      </div>
+                    ))}
                   </div>
 
-                  {day.stages.map((stage) => (
-                    <div key={stage} className="relative min-w-0 overflow-hidden rounded-b-md bg-white/45 sm:rounded-b-lg md:rounded-b-lg" style={{ height: timelineHeight }}>
+                  {visibleStages.map((stage) => (
+                    <div key={stage} className="relative min-w-0 overflow-hidden rounded-b-md bg-white/45 sm:rounded-b-lg md:rounded-b-lg" style={{ height: timelineGridHeight }}>
                       {timeMarkers.map((marker) => (
                         <div
                           key={`${stage}-${marker}`}
                           className={marker % 60 === 0 ? "absolute left-0 right-0 border-t border-white/80" : "absolute left-0 right-0 border-t border-white/35"}
-                          style={{ top: (marker - dayStart) * PX_PER_MINUTE }}
+                          style={{ top: getTimelineY(marker) }}
                         />
                       ))}
                       {day.events
@@ -450,9 +482,10 @@ export default function UpcloseBlockPlanner() {
                               selected={selected}
                               overlapSeverity={selected ? overlapSeverityMap.get(event.id) : null}
                               muted={muted}
-                              top={(event.startMin - dayStart) * PX_PER_MINUTE + 2}
-                              height={Math.max((event.endMin - event.startMin) * PX_PER_MINUTE - 4, 64)}
+                              top={getTimelineY(event.startMin) + 2}
+                              height={Math.max((event.endMin - event.startMin) * PX_PER_MINUTE - 4, isSingleAreaView ? 86 : 64)}
                               onToggle={toggleEvent}
+                              expanded={isSingleAreaView}
                             />
                           );
                         })}
