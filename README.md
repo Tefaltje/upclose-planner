@@ -1,21 +1,21 @@
-# Upclose Blokkenschema App
+# Upclose Timetable App
 
-React/Vite app voor een persoonlijk blokkenschema.
+React/Vite app for creating a personal festival timetable.
 
-## Lokaal testen
+## Test locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Deployen op Vercel
+## Deploy on Vercel
 
-1. Upload alle bestanden uit deze map naar een GitHub-repository.
-2. Ga naar Vercel → Add New → Project.
-3. Importeer je GitHub-repository.
-4. Laat de Vite-instellingen staan of gebruik:
+1. Upload all files from this folder to a GitHub repository.
+2. Go to Vercel → Add New → Project.
+3. Import your GitHub repository.
+4. Keep the Vite settings or use:
    - Build Command: `npm run build`
    - Output Directory: `dist`
    - Install Command: `npm install`
-5. Klik op Deploy.
+5. Click Deploy.

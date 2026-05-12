@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 
 const DATA = {
   saturday: {
-    label: "Zaterdag",
-    date: "16 mei",
+    label: "Saturday",
+    date: "May 16",
     start: "12:00",
     end: "23:00",
     stages: ["AREA.97", "AREA.01", "AREA.07", "AREA.14", "AREA.22", "AREA.24"],
@@ -52,8 +52,8 @@ const DATA = {
     ],
   },
   sunday: {
-    label: "Zondag",
-    date: "17 mei",
+    label: "Sunday",
+    date: "May 17",
     start: "13:00",
     end: "23:00",
     stages: ["AREA.97", "AREA.01", "AREA.07", "AREA.14", "AREA.22", "AREA.24"],
@@ -104,7 +104,7 @@ const DATA = {
   },
 };
 
-const PX_PER_MINUTE = 1.2;
+const PX_PER_MINUTE = 1.22;
 
 function timeToMinutes(time) {
   const [hours, minutes] = time.split(":").map(Number);
@@ -202,7 +202,7 @@ function EventCard({ event, top, height, selected, overlapSeverity, muted, onTog
       onClick={() => onToggle(event.id)}
       title={`${event.start}–${event.end} · ${event.title}`}
       className={[
-        "absolute left-0.5 right-0.5 overflow-hidden rounded-lg border p-1.5 text-left transition-all duration-150 md:left-1 md:right-1 md:rounded-2xl md:p-2",
+        "absolute left-px right-px max-w-full overflow-hidden rounded-md border px-0.5 py-1 text-left transition-all duration-150 sm:left-0.5 sm:right-0.5 sm:rounded-lg sm:p-1.5 md:left-1 md:right-1 md:rounded-lg md:p-2",
         "hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-neutral-900",
         selected
           ? overlapSeverity === "red"
@@ -215,11 +215,11 @@ function EventCard({ event, top, height, selected, overlapSeverity, muted, onTog
       ].join(" ")}
       style={{ top, height }}
     >
-      <div className="text-[8px] font-black uppercase leading-none tracking-tight opacity-80 sm:text-[9px] md:text-[10px]">
+      <div className="max-w-full overflow-hidden text-[6.5px] font-black uppercase leading-none tracking-tight opacity-80 sm:text-[8px] md:text-[10px]">
         {event.start} – {event.end}
       </div>
-      <div className="mt-0.5 break-words text-[9px] font-black uppercase leading-[0.95] tracking-tighter sm:text-[10px] md:mt-1 md:text-sm md:leading-tight md:tracking-tight">{event.title}</div>
-      {event.note && <div className="mt-0.5 break-words text-[7px] font-bold uppercase leading-[0.95] opacity-75 sm:text-[8px] md:mt-1 md:text-[10px] md:leading-tight">{event.note}</div>}
+      <div className="mt-0.5 max-w-full break-words text-[7px] font-black uppercase leading-[0.9] tracking-tighter hyphens-auto [overflow-wrap:anywhere] sm:text-[8.5px] sm:leading-[0.95] md:mt-1 md:text-sm md:leading-tight md:tracking-tight">{event.title}</div>
+      {event.note && <div className="mt-0.5 hidden max-w-full break-words text-[7px] font-bold uppercase leading-[0.95] opacity-75 [overflow-wrap:anywhere] sm:block sm:text-[8px] md:mt-1 md:text-[10px] md:leading-tight">{event.note}</div>}
     </button>
   );
 }
@@ -273,7 +273,6 @@ export default function UpcloseBlockPlanner() {
 
   const filteredIds = useMemo(() => new Set(filteredEvents.map((event) => event.id)), [filteredEvents]);
 
-
   const timeMarkers = useMemo(() => {
     const markers = [];
     for (let t = dayStart; t <= dayEnd; t += 30) markers.push(t);
@@ -289,27 +288,26 @@ export default function UpcloseBlockPlanner() {
     setSelectedIds((current) => current.filter((id) => !dayIds.has(id)));
   };
 
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-200 via-cyan-100 to-sky-300 p-3 pb-24 text-neutral-950 md:p-8 md:pb-8">
+    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-cyan-200 via-cyan-100 to-sky-300 p-3 pb-24 text-neutral-950 md:p-8 md:pb-8">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-6 rounded-[2rem] border border-white/60 bg-white/55 p-5 shadow-xl backdrop-blur md:p-7">
+        <header className="mb-6 rounded-xl border border-white/60 bg-white/55 p-5 shadow-xl backdrop-blur md:p-7">
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.35em] text-neutral-600">Upclose personal planner</p>
-              <h1 className="mt-2 text-4xl font-black uppercase leading-none tracking-tighter md:text-7xl">Blokkenschema</h1>
+              <h1 className="mt-2 text-4xl font-black uppercase leading-none tracking-tighter md:text-7xl">Timetable</h1>
               <p className="mt-3 max-w-2xl text-sm font-medium text-neutral-700 md:text-base">
-                Klik acts aan om je eigen route te maken. Alleen overlap van meer dan 30 minuten wordt een keuzemoment in de vergelijker. Kortere overlap markeren we geel in je schema.
+                Select acts to create your personal timetable. An overlap of more than 30 minutes becomes a choice moment in the comparison view; shorter overlaps are marked yellow in your timetable.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-2 rounded-3xl bg-white/70 p-2 shadow-inner">
+            <div className="grid grid-cols-2 gap-2 rounded-xl bg-white/70 p-2 shadow-inner">
               {Object.entries(DATA).map(([key, item]) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() => setDayKey(key)}
                   className={[
-                    "rounded-2xl px-4 py-3 text-left transition",
+                    "rounded-lg px-4 py-3 text-left transition",
                     key === dayKey ? "bg-neutral-950 text-white shadow-lg" : "bg-transparent hover:bg-white",
                   ].join(" ")}
                 >
@@ -322,12 +320,12 @@ export default function UpcloseBlockPlanner() {
 
           <div className="mt-6 grid grid-cols-[minmax(0,1fr)_112px] gap-3 md:grid-cols-[1.4fr_0.9fr_1.15fr_0.55fr]">
             <label className="col-span-2 block md:col-span-1">
-              <span className="mb-1 block text-xs font-black uppercase tracking-wider text-neutral-600">Zoeken</span>
+              <span className="mb-1 block text-xs font-black uppercase tracking-wider text-neutral-600">Search</span>
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Zoek act, area of settype…"
-                className="w-full rounded-2xl border border-white/80 bg-white/80 px-4 py-3 font-semibold outline-none ring-neutral-950/0 transition placeholder:text-neutral-400 focus:ring-2"
+                placeholder="Search act, area or set type…"
+                className="w-full rounded-lg border border-white/80 bg-white/80 px-4 py-3 font-semibold outline-none ring-neutral-950/0 transition placeholder:text-neutral-400 focus:ring-2"
               />
             </label>
             <label className="col-span-2 block md:col-span-1">
@@ -335,9 +333,9 @@ export default function UpcloseBlockPlanner() {
               <select
                 value={stageFilter}
                 onChange={(event) => setStageFilter(event.target.value)}
-                className="w-full rounded-2xl border border-white/80 bg-white/80 px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-neutral-950"
+                className="w-full rounded-lg border border-white/80 bg-white/80 px-4 py-3 font-semibold outline-none focus:ring-2 focus:ring-neutral-950"
               >
-                <option value="all">Alle areas</option>
+                <option value="all">All areas</option>
                 {day.stages.map((stage) => (
                   <option key={stage} value={stage}>
                     {stage}
@@ -350,11 +348,11 @@ export default function UpcloseBlockPlanner() {
                 type="button"
                 onClick={() => setOnlySelected((current) => !current)}
                 className={[
-                  "w-full rounded-2xl border px-4 py-3 text-sm font-black uppercase transition sm:text-base md:px-5 md:py-3.5",
+                  "w-full rounded-lg border px-4 py-3 text-sm font-black uppercase transition sm:text-base md:px-5 md:py-3.5",
                   onlySelected ? "border-neutral-950 bg-neutral-950 text-white" : "border-white/80 bg-white/80 hover:bg-white",
                 ].join(" ")}
               >
-                {onlySelected ? "Toon alles" : "Alleen mijn schema"}
+                {onlySelected ? "Show all" : "My timetable"}
               </button>
             </label>
             <div className="flex items-end">
@@ -362,61 +360,77 @@ export default function UpcloseBlockPlanner() {
                 type="button"
                 onClick={clearDay}
                 disabled={!selectedDayEvents.length}
-                className="w-full rounded-2xl bg-rose-600 px-2 py-3 text-xs font-black uppercase text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300 disabled:opacity-60 sm:text-sm"
+                className="w-full rounded-lg bg-rose-600 px-2 py-3 text-xs font-black uppercase text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300 disabled:opacity-60 sm:text-sm"
               >
-                Wis dag
+                Clear day
               </button>
             </div>
           </div>
         </header>
 
         <section className="mb-5 grid grid-cols-2 gap-3">
-          <div className="rounded-3xl bg-white/70 p-4 shadow-sm backdrop-blur">
-            <div className="text-xs font-black uppercase tracking-wider text-neutral-500">Geselecteerd</div>
+          <div className="rounded-xl bg-white/70 p-4 shadow-sm backdrop-blur">
+            <div className="text-xs font-black uppercase tracking-wider text-neutral-500">Selected</div>
             <div className="mt-1 text-2xl font-black md:text-3xl">{selectedDayEvents.length}</div>
           </div>
-          <div className="rounded-3xl bg-white/70 p-4 shadow-sm backdrop-blur">
-            <div className="text-xs font-black uppercase tracking-wider text-neutral-500">Keuzemomenten</div>
+          <div className="rounded-xl bg-white/70 p-4 shadow-sm backdrop-blur">
+            <div className="text-xs font-black uppercase tracking-wider text-neutral-500">Choice moments</div>
             <div className="mt-1 text-2xl font-black md:text-3xl">{choiceMomentGroups.length}</div>
           </div>
         </section>
 
         <main className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
-          <section className="overflow-hidden rounded-[2rem] border border-white/60 bg-white/45 shadow-xl backdrop-blur">
+          <section className="w-full max-w-full overflow-hidden rounded-xl border border-white/60 bg-white/45 shadow-xl backdrop-blur">
             <div className="flex items-center justify-between gap-3 border-b border-white/60 p-4">
               <div>
                 <h2 className="text-xl font-black uppercase tracking-tight">{day.label} {day.date}</h2>
-                <p className="text-xs font-bold uppercase text-neutral-600">Klik blokken aan om toe te voegen of te verwijderen.</p>
+                <p className="text-xs font-bold uppercase text-neutral-600">Click blocks to add or remove them.</p>
               </div>
               <div className="rounded-full bg-white/80 px-3 py-1 text-xs font-black uppercase">{day.start}–{day.end}</div>
             </div>
 
-            <div className="overflow-x-auto p-1.5 md:p-3">
-              <div className="min-w-[620px] sm:min-w-0">
-                <div className="grid grid-cols-[46px_repeat(6,minmax(88px,1fr))] gap-0.5 md:grid-cols-[56px_repeat(6,minmax(100px,1fr))] md:gap-1 lg:grid-cols-[72px_repeat(6,minmax(140px,1fr))]">
+            <div className="w-full max-w-full overflow-hidden p-1 md:p-3" style={{ touchAction: "pan-y" }}>
+              <div className="w-full min-w-0 max-w-full overflow-hidden">
+                <div className="grid w-full min-w-0 max-w-full grid-cols-[26px_repeat(6,minmax(0,1fr))] gap-px overflow-hidden sm:grid-cols-[34px_repeat(6,minmax(0,1fr))] sm:gap-0.5 md:grid-cols-[56px_repeat(6,minmax(0,1fr))] md:gap-1 lg:grid-cols-[72px_repeat(6,minmax(0,1fr))]">
                   <div />
                   {day.stages.map((stage) => (
-                    <div key={stage} className="rounded-t-lg bg-white/80 px-0.5 py-2 text-center text-[9px] font-black uppercase leading-none tracking-tight md:rounded-t-2xl md:py-3 md:text-sm md:tracking-[0.25em]">
-                      {stage}
+                    <div key={stage} className="min-w-0 overflow-hidden rounded-t-md bg-white/80 px-0.5 py-1.5 text-center text-[7px] font-black uppercase leading-none tracking-tighter sm:rounded-t-lg sm:text-[8px] md:rounded-t-lg md:py-3 md:text-sm md:tracking-[0.25em]">
+                      <span className="md:hidden">{stage.replace("AREA.", "")}</span>
+                      <span className="hidden md:inline">{stage}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-[46px_repeat(6,minmax(88px,1fr))] gap-0.5 md:grid-cols-[56px_repeat(6,minmax(100px,1fr))] md:gap-1 lg:grid-cols-[72px_repeat(6,minmax(140px,1fr))]">
-                  <div className="relative" style={{ height: timelineHeight }}>
-                    {timeMarkers.map((marker) => (
-                      <div
-                        key={marker}
-                        className="absolute left-0 right-0 -translate-y-1/2 pr-1 text-right text-[9px] font-black tabular-nums text-neutral-700 md:pr-2 md:text-sm"
-                        style={{ top: (marker - dayStart) * PX_PER_MINUTE }}
-                      >
-                        {minutesToTime(marker)}
-                      </div>
-                    ))}
+                <div className="grid w-full min-w-0 max-w-full grid-cols-[26px_repeat(6,minmax(0,1fr))] gap-px overflow-hidden sm:grid-cols-[34px_repeat(6,minmax(0,1fr))] sm:gap-0.5 md:grid-cols-[56px_repeat(6,minmax(0,1fr))] md:gap-1 lg:grid-cols-[72px_repeat(6,minmax(0,1fr))]">
+                  <div className="relative min-w-0 overflow-hidden" style={{ height: timelineHeight }}>
+                    {timeMarkers.map((marker) => {
+                      const isFirstMarker = marker === dayStart;
+                      const isLastMarker = marker === dayEnd;
+                      const markerTop = isFirstMarker
+                        ? 2
+                        : isLastMarker
+                          ? timelineHeight - 2
+                          : (marker - dayStart) * PX_PER_MINUTE;
+                      const markerTransform = isFirstMarker
+                        ? "translateY(0)"
+                        : isLastMarker
+                          ? "translateY(-100%)"
+                          : "translateY(-50%)";
+
+                      return (
+                        <div
+                          key={marker}
+                          className="absolute left-0 right-0 pr-0.5 text-right text-[7px] font-black leading-none tabular-nums text-neutral-700 sm:pr-1 sm:text-[8px] md:pr-2 md:text-sm"
+                          style={{ top: markerTop, transform: markerTransform }}
+                        >
+                          {minutesToTime(marker)}
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {day.stages.map((stage) => (
-                    <div key={stage} className="relative rounded-b-lg bg-white/45 md:rounded-b-2xl" style={{ height: timelineHeight }}>
+                    <div key={stage} className="relative min-w-0 overflow-hidden rounded-b-md bg-white/45 sm:rounded-b-lg md:rounded-b-lg" style={{ height: timelineHeight }}>
                       {timeMarkers.map((marker) => (
                         <div
                           key={`${stage}-${marker}`}
@@ -437,7 +451,7 @@ export default function UpcloseBlockPlanner() {
                               overlapSeverity={selected ? overlapSeverityMap.get(event.id) : null}
                               muted={muted}
                               top={(event.startMin - dayStart) * PX_PER_MINUTE + 2}
-                              height={Math.max((event.endMin - event.startMin) * PX_PER_MINUTE - 4, 58)}
+                              height={Math.max((event.endMin - event.startMin) * PX_PER_MINUTE - 4, 64)}
                               onToggle={toggleEvent}
                             />
                           );
@@ -450,18 +464,18 @@ export default function UpcloseBlockPlanner() {
           </section>
 
           <aside className="space-y-4">
-            <section className="rounded-[2rem] border border-white/60 bg-white/70 p-4 shadow-xl backdrop-blur">
+            <section className="rounded-xl border border-white/60 bg-white/70 p-4 shadow-xl backdrop-blur">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <div>
-                  <h2 className="text-xl font-black uppercase tracking-tight">Mijn schema</h2>
-                  <p className="text-xs font-bold uppercase text-neutral-600">Gesorteerd op tijd</p>
+                  <h2 className="text-xl font-black uppercase tracking-tight">My timetable</h2>
+                  <p className="text-xs font-bold uppercase text-neutral-600">Sorted by time</p>
                 </div>
                 <span className="rounded-full bg-neutral-950 px-3 py-1 text-xs font-black text-white">{selectedDayEvents.length}</span>
               </div>
 
               {!selectedDayEvents.length ? (
-                <div className="rounded-3xl border border-dashed border-neutral-300 bg-white/50 p-5 text-sm font-semibold text-neutral-600">
-                  Nog geen acts geselecteerd. Klik links op de blokken die je wil zien.
+                <div className="rounded-xl border border-dashed border-neutral-300 bg-white/50 p-5 text-sm font-semibold text-neutral-600">
+                  No acts selected yet. Click the blocks in the timetable to add them.
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -471,7 +485,7 @@ export default function UpcloseBlockPlanner() {
                       type="button"
                       onClick={() => toggleEvent(event.id)}
                       className={[
-                        "w-full rounded-3xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-md",
+                        "w-full rounded-xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-md",
                         overlapSeverityMap.get(event.id) === "red"
                           ? "border-rose-300 bg-rose-50"
                           : overlapSeverityMap.get(event.id) === "yellow"
@@ -485,7 +499,7 @@ export default function UpcloseBlockPlanner() {
                           <div className="mt-1 text-base font-black uppercase leading-tight">{event.title}</div>
                           {event.note && <div className="mt-1 text-xs font-bold uppercase text-neutral-500">{event.note}</div>}
                         </div>
-                        <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 text-[10px] font-black uppercase text-white">Verwijder</span>
+                        <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 text-[10px] font-black uppercase text-white">Remove</span>
                       </div>
                     </button>
                   ))}
@@ -493,15 +507,15 @@ export default function UpcloseBlockPlanner() {
               )}
             </section>
 
-            <section className="rounded-[2rem] border border-white/60 bg-white/70 p-4 shadow-xl backdrop-blur">
-              <h2 className="text-xl font-black uppercase tracking-tight">Vergelijker</h2>
+            <section className="rounded-xl border border-white/60 bg-white/70 p-4 shadow-xl backdrop-blur">
+              <h2 className="text-xl font-black uppercase tracking-tight">Comparison</h2>
               <p className="mt-1 text-xs font-bold uppercase text-neutral-600">
-                Alleen overlap van meer dan 30 minuten komt hier als keuzemoment te staan.
+                Only overlaps of more than 30 minutes appear here as choice moments.
               </p>
 
               {!choiceMomentGroups.length ? (
-                <div className="mt-4 rounded-3xl bg-emerald-50 p-4 text-sm font-bold text-emerald-900">
-                  Geen overlap in je huidige selectie voor deze dag.
+                <div className="mt-4 rounded-xl bg-emerald-50 p-4 text-sm font-bold text-emerald-900">
+                  No overlap in your current selection for this day.
                 </div>
               ) : (
                 <div className="mt-4 space-y-3">
@@ -509,9 +523,9 @@ export default function UpcloseBlockPlanner() {
                     const start = Math.min(...group.map((event) => event.startMin));
                     const end = Math.max(...group.map((event) => event.endMin));
                     return (
-                      <div key={`${index}-${start}`} className="rounded-3xl border border-rose-200 bg-rose-50 p-3">
+                      <div key={`${index}-${start}`} className="rounded-xl border border-rose-200 bg-rose-50 p-3">
                         <div className="mb-2 text-xs font-black uppercase text-rose-900">
-                          Keuzemoment {index + 1} · {minutesToTime(start)}–{minutesToTime(end)} · meer dan 30 min overlap
+                          Choice moment {index + 1} · {minutesToTime(start)}–{minutesToTime(end)} · more than 30 min overlap
                         </div>
                         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                           {group.map((event) => (
@@ -519,7 +533,7 @@ export default function UpcloseBlockPlanner() {
                               key={event.id}
                               type="button"
                               onClick={() => toggleEvent(event.id)}
-                              className="rounded-2xl bg-white p-3 text-left shadow-sm transition hover:shadow-md"
+                              className="rounded-lg bg-white p-3 text-left shadow-sm transition hover:shadow-md"
                             >
                               <div className="text-[10px] font-black uppercase text-neutral-500">{event.start}–{event.end}</div>
                               <div className="mt-1 text-sm font-black uppercase leading-tight">{event.title}</div>
@@ -536,25 +550,25 @@ export default function UpcloseBlockPlanner() {
           </aside>
         </main>
 
-        <div className="fixed inset-x-3 bottom-3 z-50 rounded-3xl border border-white/70 bg-white/85 p-3 shadow-2xl backdrop-blur lg:hidden">
+        <div className="fixed inset-x-3 bottom-3 z-50 rounded-xl border border-white/70 bg-white/85 p-3 shadow-2xl backdrop-blur lg:hidden">
           <div className="mb-2 text-center text-[10px] font-black uppercase tracking-wider text-neutral-500">
-            {selectedDayEvents.length} acts · {choiceMomentGroups.length} keuzemomenten
+            {selectedDayEvents.length} acts · {choiceMomentGroups.length} choice moments
           </div>
           <div className="grid grid-cols-[minmax(0,1fr)_112px] gap-2">
             <button
               type="button"
               onClick={() => setOnlySelected((current) => !current)}
-              className="rounded-2xl bg-neutral-950 px-4 py-3 text-xs font-black uppercase text-white"
+              className="rounded-lg bg-neutral-950 px-4 py-3 text-xs font-black uppercase text-white"
             >
-              {onlySelected ? "Toon alles" : "Alleen mijn schema"}
+              {onlySelected ? "Show all" : "My timetable"}
             </button>
             <button
               type="button"
               onClick={clearDay}
               disabled={!selectedDayEvents.length}
-              className="rounded-2xl bg-rose-600 px-2 py-3 text-xs font-black uppercase text-white shadow-sm disabled:cursor-not-allowed disabled:bg-rose-300 disabled:opacity-60"
+              className="rounded-lg bg-rose-600 px-2 py-3 text-xs font-black uppercase text-white shadow-sm disabled:cursor-not-allowed disabled:bg-rose-300 disabled:opacity-60"
             >
-              Wis dag
+              Clear day
             </button>
           </div>
         </div>
